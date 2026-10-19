@@ -72,3 +72,15 @@ no database until the build that requires it.
 
 When I say "wrap up", update PROGRESS.md (done, in progress, next, open
 questions) and nothing else. Then tell me what to commit.
+
+
+## Course rules from the teacher's README
+- Each build is done on a branch named build-N and merged into main with a
+  pull request. I do all of that. You never touch git.
+- Node built-in modules only. No outside packages.
+- A failed operation must never change any data.
+- docs/ai-log.md is graded. After each task, tell me what to write for: what
+  I asked, what came back, what was wrong (or "nothing"), and what I changed.
+  Write it only if I ask.
+- After each piece of code, tell me what to check and what output I should see.
+  Do not trust your own output.
