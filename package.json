@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "demo": "node scripts/demo.js",
+    "benchmark": "node scripts/benchmark-lookup.js"
   },
   "keywords": [],
   "author": "",
