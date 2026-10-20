@@ -1,29 +1,22 @@
 # PROGRESS
 
 ## Current build
-Build 1 (on branch build-1)
+Build 1 finished, pull request pending (branch build-1)
 
 ## Current task
-src/domain/ids.js: plan stage only. No code until I say "go".
+None. Open and merge the Build 1 pull request, then start Build 2.
 
 ## Done
-- Project folder, Git, docs/ copied, AGENTS.md in place
-- src/domain/errors.js written and checked. DomainError(message, code).
-  Frozen ErrorCode object: VALIDATION, NOT_FOUND, SOLD_OUT, INVALID_STATE.
-  INVALID_STATE is used for cancelling twice.
+- errors.js, ids.js, waitlistQueue.js, inventory.js (with nextOnWaitlist),
+  scripts/demo.js, scripts/benchmark-lookup.js
+- package.json has test, demo and benchmark scripts
+- docs/ai-log.md has Build 1 entries
 
-## In progress
-- ids.js (plan stage)
-
-## Next (one file at a time: plan, "go", write, explain, check, stop)
-- src/domain/ids.js
-- src/domain/waitlistQueue.js
-- src/domain/inventory.js
-- scripts/demo.js (then add the "demo" script to package.json)
-- scripts/benchmark-lookup.js (then add the "benchmark" script)
+## Next
+- Build 2: branch build-2, then plan docs/build-2.md one file at a time
 
 ## Open questions
 - None
 
 ## Last tool used
-Cursor (usage limit reached), switching to FreeBuff
+FreeBuff
