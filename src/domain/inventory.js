@@ -194,6 +194,28 @@ export function joinWaitlist(store, eventId, tierName, person) {
   return queue.size();
 }
 
+export function nextOnWaitlist(store, eventId, tierName) {
+  const event = store.events.get(eventId);
+  if (!event) {
+    throw new DomainError("event not found", ErrorCode.NOT_FOUND);
+  }
+
+  const tier = event.tiers.find((t) => t.name === tierName);
+  if (!tier) {
+    throw new DomainError("tier not found", ErrorCode.NOT_FOUND);
+  }
+
+  const key = `${eventId}:${tier.id}`;
+  const queue = store.waitlists.get(key);
+  if (!queue) {
+    return null;
+  }
+  if (queue.size() === 0) {
+    return null;
+  }
+  return queue.peek();
+}
+
 function isValidDate(date) {
   if (typeof date !== "string") {
     return false;
