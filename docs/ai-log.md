@@ -52,3 +52,35 @@ Every time you give an AI tool a significant prompt, add an entry. Three lines e
   report gave two different outputs as if they were one run. I fixed these by
   verifying after the timer stops, spacing the lookups evenly, and keeping the
   uniqueness check.
+
+## Build 2
+
+### Prompt 1: Inventory review and event publishing
+- **What I asked:** Review the existing inventory behavior and verify event creation, ticket tiers, publishing, and public event summaries against the Build 2 requirements.
+- **What came back:** An implementation review and manual verification steps for the existing inventory functions.
+- **What was wrong (or "nothing"):** Date validation accepted an impossible date such as `2026-02-30` because JavaScript normalized it. I requested explicit calendar validation for ISO date strings.
+
+### Prompt 2: Event search and handwritten merge sort
+- **What I asked:** Implement event filtering, searching, and sorting using a handwritten merge sort, without changing the original list.
+- **What came back:** `src/domain/eventSearch.js` and `src/domain/sorting.js`, with filtering, sorting, validation, and immutability checks.
+- **What was wrong (or "nothing"):** The initial review and test corrections caught issues in the test setup and assertions. I corrected those before accepting the test results.
+
+### Prompt 3: Inventory acceptance tests
+- **What I asked:** Add automated tests for event creation (S02), ticket tiers (S03), and ticket booking (S06), including error codes and checks that failed operations change nothing.
+- **What came back:** `test/inventory.test.js` with tests for successful operations, validation failures, missing records, and sold-out bookings.
+- **What was wrong (or "nothing"):** The impossible-date test exposed the date-validation bug. I required the validator to check real calendar dates without changing unrelated date parsing behavior.
+
+### Prompt 4: S04 publish and unpublish
+- **What I asked:** Plan and implement publishing and unpublishing an event, including public-list behavior and missing-event errors.
+- **What came back:** An exported `unpublishEvent()` function and S04 tests in `test/inventory.test.js`.
+- **What was wrong (or "nothing"):** The three S04 acceptance criteria were drafted with AI and accepted by the user because class-written criteria were not available. The initial inventory code had no `unpublishEvent()` function. I reviewed the plan before approving the implementation.
+
+### Prompt 5: Date validator cleanup against years 0–99
+- **What I asked:** Correct `isValidDate()` in `src/domain/inventory.js` so calendar-only `YYYY-MM-DD` validation does not rely on a `Date` constructor path that remaps years 0–99.
+- **What came back:** A revised validator that uses a month-length table and explicit Gregorian leap-year logic for exact ISO date strings, while preserving the existing non-ISO parseability fallback.
+- **What was wrong (or "nothing"):** The first corrected version still used `new Date(year, month, 0)`, so it had not actually avoided the year 0–99 special case. I pointed out the mismatch between the explanation and the code and required the stricter explicit calendar check.
+
+### Prompt 6: Full test verification
+- **What I asked:** Run the inventory tests and the complete automated test suite after the approved changes.
+- **What came back:** The inventory tests passed, followed by a complete test run with 76 tests passing and zero failures.
+- **What was wrong (or "nothing"):** No failures remained in the final test run. The passing tests do not by themselves confirm that every Build 2 requirement is complete.
