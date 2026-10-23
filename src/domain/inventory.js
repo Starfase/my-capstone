@@ -216,10 +216,117 @@ export function nextOnWaitlist(store, eventId, tierName) {
   return queue.peek();
 }
 
+export function publishEvent(store, eventId) {
+  const event = store.events.get(eventId);
+  if (!event) {
+    throw new DomainError("event not found", ErrorCode.NOT_FOUND);
+  }
+
+  if (event.tiers.length === 0) {
+    throw new DomainError("cannot publish an event with no ticket tiers", ErrorCode.INVALID_STATE);
+  }
+
+  event.published = true;
+  return event;
+}
+
+export function unpublishEvent(store, eventId) {
+  const event = store.events.get(eventId);
+  if (!event) {
+    throw new DomainError("event not found", ErrorCode.NOT_FOUND);
+  }
+
+  event.published = false;
+  return event;
+}
+
+function buildEventSummary(event) {
+  let cheapestPriceCents = null;
+  let seatsLeft = 0;
+
+  const tiers = event.tiers;
+  if (tiers.length > 0) {
+    let first = true;
+    for (let i = 0; i < tiers.length; i++) {
+      const tier = tiers[i];
+      const tierSeatsLeft = tier.capacity - tier.sold;
+      seatsLeft += tierSeatsLeft;
+
+      if (first || tier.priceCents < cheapestPriceCents) {
+        cheapestPriceCents = tier.priceCents;
+        first = false;
+      }
+    }
+  }
+
+  return {
+    id: event.id,
+    title: event.title,
+    venue: event.venue,
+    city: event.city,
+    date: event.date,
+    cheapestPriceCents,
+    seatsLeft,
+  };
+}
+
+export function listEventSummaries(store, options = {}) {
+  const publishedOnly = options.publishedOnly !== false;
+  const summaries = [];
+
+  for (const event of store.events.values()) {
+    if (publishedOnly && event.published === false) {
+      continue;
+    }
+
+    summaries.push(buildEventSummary(event));
+  }
+
+  return summaries;
+}
+
+const LAST_DAY_OF_MONTH = Object.freeze({
+  1: 31,
+  2: 28,
+  3: 31,
+  4: 30,
+  5: 31,
+  6: 30,
+  7: 31,
+  8: 31,
+  9: 30,
+  10: 31,
+  11: 30,
+  12: 31,
+});
+
+function isGregorianLeapYear(year) {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
 function isValidDate(date) {
   if (typeof date !== "string") {
     return false;
   }
+
+  const isoDatePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const match = date.match(isoDatePattern);
+
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (year < 1 || month < 1 || month > 12 || day < 1) {
+      return false;
+    }
+
+    if (isGregorianLeapYear(year)) {
+      return day <= (month === 2 ? 29 : LAST_DAY_OF_MONTH[month]);
+    }
+    return day <= LAST_DAY_OF_MONTH[month];
+  }
+
   const parsed = new Date(date);
   return !Number.isNaN(parsed.getTime());
 }
