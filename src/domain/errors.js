@@ -7,6 +7,7 @@ const _ErrorCode = {
   SOLD_OUT: "SOLD_OUT",
   INVALID_STATE: "INVALID_STATE",
   NOT_SOLD_OUT: "NOT_SOLD_OUT",
+  INVALID_TRANSITION: "INVALID_TRANSITION",
 };
 
 export const ErrorCode = Object.freeze(_ErrorCode);

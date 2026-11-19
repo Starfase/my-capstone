@@ -84,3 +84,20 @@ Every time you give an AI tool a significant prompt, add an entry. Three lines e
 - **What I asked:** Run the inventory tests and the complete automated test suite after the approved changes.
 - **What came back:** The inventory tests passed, followed by a complete test run with 76 tests passing and zero failures.
 - **What was wrong (or "nothing"):** No failures remained in the final test run. The passing tests do not by themselves confirm that every Build 2 requirement is complete.
+
+## Build 3
+
+### Prompt 1: Build 3 architecture, state machine and server skeleton
+- **What I asked:** Build 3 from docs/build-3.md: an architecture document with three Mermaid diagrams, the booking state machine as data with `canTransition` and `assertTransition`, a router and a `node:http` app serving `/health` and `public/`, `src/server.js` with `src/config.js`, and tests for every booking move, the router and one real `/health` request.
+- **What came back:** `docs/architecture.md`, `src/domain/bookingStateMachine.js`, `src/http/router.js`, `src/http/app.js`, `src/server.js`, `src/config.js`, and the matching test files. The server started, `/health` answered `{"status":"ok"}`, and the suite ran 101 tests with no failures.
+- **What was wrong (or "nothing"):** Static-file serving was broken on Windows. The containment check compared paths as strings against `publicRoot + "/"`, so a real path like `C:\...\public\index.html` could never match; `GET /index.html` returned 404 while `GET /` only worked because of a separate "equals the root" clause. My suite had no static-file test at all, so 101 green tests hid a failed Build 3 requirement. The AI also left two statements on one line when it inserted the `/health` route — cosmetic, still on my cleanup list.
+
+### Prompt 2: Windows containment fix and static-file regression tests
+- **What I asked:** Replace the separator-sensitive string check with a `path.relative()` check in `resolveSafePublicPath` only, then add regression tests for `GET /`, `GET /index.html`, a missing file and a path-traversal attempt.
+- **What came back:** A one-function change using `path.relative`, `path.sep` and `path.isAbsolute`, plus four tests in `test/http.test.js` that read the expected HTML and the leak marker from the real files. I verified `/index.html` and `/` return 200 `text/html`, a missing file returns the JSON 404, and traversal probes return 404 without exposing `package.json`: 12/12 in the file, 105/105 across the suite.
+- **What was wrong (or "nothing"):** Nothing in the fix. But the traversal test I accepted did not do what its own comment claimed, which I only found on review in Prompt 3.
+
+### Prompt 3: Review of the traversal test, and the premature normalization
+- **What I asked:** A focused review of whether the six traversal requests really reach the containment check, and whether the test would fail if that check were broken.
+- **What came back:** They do not. `pathNormalize` ran on the request path before it was joined to `public/`, and normalizing `/../package.json` alone clamps `..` at `/`, so all six requests resolved inside `public/` and 404'd because the file was missing — the guard was never consulted, and the test would pass with the guard deleted. The old Windows check had also failed closed, so no traversal assertion could ever have caught the original bug.
+- **What was wrong (or "nothing"):** My test gave false confidence, and the review code had a redundant normalization step. I had the early normalization removed so `path.join` normalizes the combined path, and strengthened the test with existence checks for the outside targets and comments separating literal, encoded and backslash cases. Verified: `/../package.json` and `/../src/server.js` return 404 while those files do exist outside `public/`; `/` and `/index.html` still serve; `GET /..` now returns 404 instead of the index page; 12/12 and 105/105 still pass.
